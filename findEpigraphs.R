@@ -53,3 +53,32 @@ findEpitaphs <- binaryCat(africaFull[,10], c("infans", "innocens", "puer", "puel
             "dis manibus", "annos", "menses", "dies"))
 epitaphs <- africaFull[findEpitaphs == T, ]
 
+#Write the first version of the epitaphs csv
+write.csv(epitaphs, file = "epitaphs.csv")
+
+
+'''Next we need to find the age categories. This should first involve creating a function which finds a word 
+then looks directly after it for a roman numeral. We then convert that roman numeral into a regular number and put it into a vector. We need to do this
+for a years, months, days, and hours columns. Fortunately, the same function should work for each. It might have been nice to construct a vector with the 
+amended character strings included in it. I think I will go ahead and make this.'''
+
+subs = c("(", ")", "[", "]", "{", "}", "?", "/")
+
+modifiedInscriptions <- rep(NA, nrow(epitaphs)) 
+for(i in 1:nrow(epitaphs)){
+  modifiedInscriptions[i] <- epitaphs[i, 10]
+  for(j in 1:length(subs)){
+    past <- modifiedInscriptions[i]
+    modifiedInscriptions[i] <- sub(subs[j], "", past, fixed = TRUE)
+    while(modifiedInscriptions[i] != past){
+      past <- modifiedInscriptions[i]
+      modifiedInscriptions[i] <- sub(subs[j], "", past, fixed = TRUE)
+    }
+  }
+}
+
+findRomanNumeral <- function(x, w){
+  
+}
+
+
