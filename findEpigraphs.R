@@ -41,4 +41,15 @@ categorize <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?")){
 }
 
 
+'''Now lets actually do some stuff. Here is the world list for epigraph categorization:
+infans, innocens, puer, puella, relinquit, quiebit, perit, reccessit, recessit, quiesco, periit, decessit, 
+vixit, vicxit, vixsit, bixit, visisti, vixi, occisus, occisa, positus, depositus, deposita,
+funus, hic situs est, situs est, in pace, in pacae, memoriae, memoriam, annis, parentibus, diis manibus,
+dis manibus, annos, menses, dies'''
+
+findEpitaphs <- binaryCat(africaFull[,10], c("infans", "innocens", "puer", "puella", "relinquit", "quiebit", "perit", "reccessit", "recessit", "quiesco", "periit", "decessit", 
+            "vixit", "vicxit", "vixsit", "bixit", "visisti", "vixi", "occisus", "occisa", "positus", "depositus", "deposita",
+            "funus", "hic situs est", "situs est", "in pace", "in pacae", "memoriae", "memoriam", "annis", "parentibus", "diis manibus",
+            "dis manibus", "annos", "menses", "dies"))
+epitaphs <- africaFull[findEpitaphs == T, ]
 
