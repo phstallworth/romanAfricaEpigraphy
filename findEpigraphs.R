@@ -57,12 +57,15 @@ epitaphs <- africaFull[findEpitaphs == T, ]
 write.csv(epitaphs, file = "epitaphs.csv")
 
 
-'''Next we need to find the age categories. This should first involve creating a function which finds a word 
-then looks directly after it for a roman numeral. We then convert that roman numeral into a regular number and put it into a vector. We need to do this
-for a years, months, days, and hours columns. Fortunately, the same function should work for each. It might have been nice to construct a vector with the 
-amended character strings included in it. I think I will go ahead and make this.'''
+'''It might have been nice to construct a vector with the amended character strings included in it. I think I will go ahead and make this.'''
 
-subs = c("(", ")", "[", "]", "{", "}", "?", "/")
+'''ALTERNATIVE START POINT FOR THE FILE'''
+epitaphs <- read.csv("epitaphs.csv", header = T)
+epitaphs[,11] <- as.character(epitaphs[,11])
+epitaphs <- epitaphs[,2:ncol(epitaphs)]
+''' DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE '''
+
+subs <- c("(", ")", "[", "]", "{", "}", "?", "/")
 
 modifiedInscriptions <- rep(NA, nrow(epitaphs)) 
 for(i in 1:nrow(epitaphs)){
@@ -77,8 +80,59 @@ for(i in 1:nrow(epitaphs)){
   }
 }
 
+
+'''Next we need to find the age categories. This should first involve creating a function which finds a word 
+then looks directly after it for a roman numeral. We then convert that roman numeral into a regular number and put it into a vector. We need to do this
+for a years, months, days, and hours columns. Fortunately, the same function should work for each. '''
+
 findRomanNumeral <- function(x, w){
-  
+  location <- regexpr(w, x)
+  if(location[1] == -1){
+    return(NA)
+  }
+  else{
+  location <- location[1] + slot(location, "match.length")
+  start <- location
+  while(substr(x, start, start) == " ") {start <- start + 1}
+  end <- start
+  while(substr(x, end+1, end+1) != " " && end+1 <= nchar(x)) {end <- end + 1}
+  final <- as.numeric(as.roman(substr(x, start, end)))
+  return(final)
+  }
+}
+findRomanNumeral(modifiedInscriptions[1], "annos")
+findRomanNumeral(modifiedInscriptions[2], "annis")
+findRomanNumeral(modifiedInscriptions[3], "annis")
+
+'''Yay, so that is done. Now lets incorporate find all the years and shit. The key words are annis and annos'''
+findRomanNumeralMulti <- function(v, words){
+  final <- rep(NA, length(v))
+  for(i in 1:length(v))
+    for(j in 1:length(words)){
+      if(is.na(findRomanNumeral(v[i], words[j])) == FALSE) {
+        final[i] <- findRomanNumeral(v[i], words[j])
+      }
+    print(i)
+  }
+  return(final)
 }
 
+years <- findRomanNumeralMulti(modifiedInscriptions, c("annos", "annis"))
 
+'''Sweet! That worked. Time to do the same for months and days '''
+months <- findRomanNumeralMulti(modifiedInscriptions, c("menses", "mensibus"))
+days <- findRomanNumeralMulti(modifiedInscriptions, c("dies", "diebus"))
+hours <- findRomanNumeralMulti(modifiedInscriptions, c("horas", "oras", "horis"))
+
+length(years[!is.na(years)])
+length(months[!is.na(months)])
+length(days[!is.na(days)])
+length(hours[!is.na(hours)])
+
+'''For posterity we have 750 years recorded, 
+161 months recorded, 93 days recorded, and 12 hours recorded'''
+ 
+epitaphs <- data.frame(epitaphs, years, months, days, hours)
+
+'''WRITE THE NEW CSV!!!!!'''
+write.csv(epitaphs, "epitaphs.csv")
