@@ -45,12 +45,12 @@ categorize <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?", "/"))
 infans, innocens, puer, puella, relinquit, quiebit, perit, reccessit, recessit, quiesco, periit, decessit, 
 vixit, vicxit, vixsit, bixit, visisti, vixi, occisus, occisa, positus, depositus, deposita,
 funus, hic situs est, situs est, in pace, in pacae, memoriae, memoriam, annis, parentibus, diis manibus,
-dis manibus, annos, menses, dies'''
+dis manibus'''
 
 findEpitaphs <- binaryCat(africaFull[,10], c("infans", "innocens", "puer", "puella", "relinquit", "quiebit", "perit", "reccessit", "recessit", "quiesco", "periit", "decessit", 
             "vixit", "vicxit", "vixsit", "bixit", "visisti", "vixi", "occisus", "occisa", "positus", "depositus", "deposita",
             "funus", "hic situs est", "situs est", "in pace", "in pacae", "memoriae", "memoriam", "annis", "parentibus", "diis manibus",
-            "dis manibus", "annos", "menses", "dies"))
+            "dis manibus"))
 epitaphs <- africaFull[findEpitaphs == T, ]
 
 #Write the first version of the epitaphs csv. 
@@ -130,8 +130,8 @@ length(months[!is.na(months)])
 length(days[!is.na(days)])
 length(hours[!is.na(hours)])
 
-'''For posterity we have 750 years recorded, 
-165 months recorded, 100 days recorded, and 14 hours recorded'''
+'''For posterity we have 752 years recorded, 
+163 months recorded, 96 days recorded, and 14 hours recorded'''
  
 epitaphs <- data.frame(epitaphs, years, months, days, hours)
 
