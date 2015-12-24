@@ -23,7 +23,7 @@ binaryCat <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?")){
 
 #x is a string, cat is a vector of catagorization words
 #returns 1 if containment, 0 otherwise
-categorize <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?")){
+categorize <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?", "/")){
   for(i in 1:length(cat)){
     for(j in 1:length(subs)){
       past <- x
@@ -53,9 +53,10 @@ findEpitaphs <- binaryCat(africaFull[,10], c("infans", "innocens", "puer", "puel
             "dis manibus", "annos", "menses", "dies"))
 epitaphs <- africaFull[findEpitaphs == T, ]
 
-#Write the first version of the epitaphs csv
+#Write the first version of the epitaphs csv. 
+####DON'T REWRITE HERE!!!!! #######
 write.csv(epitaphs, file = "epitaphs.csv")
-
+##########################
 
 '''It might have been nice to construct a vector with the amended character strings included in it. I think I will go ahead and make this.'''
 
@@ -65,7 +66,7 @@ epitaphs[,11] <- as.character(epitaphs[,11])
 epitaphs <- epitaphs[,2:ncol(epitaphs)]
 ''' DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE '''
 
-subs <- c("(", ")", "[", "]", "{", "}", "?", "/")
+subs <- c("(", ")", "[", "]", "{", "}", "?", "/", "!")
 
 modifiedInscriptions <- rep(NA, nrow(epitaphs)) 
 for(i in 1:nrow(epitaphs)){
@@ -130,7 +131,7 @@ length(days[!is.na(days)])
 length(hours[!is.na(hours)])
 
 '''For posterity we have 750 years recorded, 
-161 months recorded, 93 days recorded, and 12 hours recorded'''
+165 months recorded, 100 days recorded, and 14 hours recorded'''
  
 epitaphs <- data.frame(epitaphs, years, months, days, hours)
 
