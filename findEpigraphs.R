@@ -44,12 +44,12 @@ categorize <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?", "/"))
 '''Now lets actually do some stuff. Here is the world list for epigraph categorization:
 infans, innocens, puer, puella, relinquit, quiebit, perit, reccessit, recessit, quiesco, periit, decessit, 
 vixit, vicxit, vixsit, bixit, visisti, vixi, occisus, occisa, positus, depositus, deposita,
-funus, hic situs est, situs est, in pace, in pacae, memoriae, memoriam, annis, parentibus, diis manibus,
+funus, hic situs est, situs est, in pace, in pacae, memoriae, memoriam, parentibus, diis manibus,
 dis manibus'''
 
 findEpitaphs <- binaryCat(africaFull[,10], c("infans", "innocens", "puer", "puella", "relinquit", "quiebit", "perit", "reccessit", "recessit", "quiesco", "periit", "decessit", 
             "vixit", "vicxit", "vixsit", "bixit", "visisti", "vixi", "occisus", "occisa", "positus", "depositus", "deposita",
-            "funus", "hic situs est", "situs est", "in pace", "in pacae", "memoriae", "memoriam", "annis", "parentibus", "diis manibus",
+            "funus", "hic situs est", "situs est", "in pace", "in pacae", "memoriae", "memoriam", "parentibus", "diis manibus",
             "dis manibus"))
 epitaphs <- africaFull[findEpitaphs == T, ]
 
@@ -66,7 +66,7 @@ epitaphs[,11] <- as.character(epitaphs[,11])
 epitaphs <- epitaphs[,2:ncol(epitaphs)]
 ''' DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE DONE '''
 
-subs <- c("(", ")", "[", "]", "{", "}", "?", "/", "!")
+subs <- c("(", ")", "[", "]", "{", "}", "?", "/", "!", "#")
 
 modifiedInscriptions <- rep(NA, nrow(epitaphs)) 
 for(i in 1:nrow(epitaphs)){
@@ -130,10 +130,40 @@ length(months[!is.na(months)])
 length(days[!is.na(days)])
 length(hours[!is.na(hours)])
 
-'''For posterity we have 752 years recorded, 
-163 months recorded, 96 days recorded, and 14 hours recorded'''
+'''For posterity we have 739 years recorded, 
+160 months recorded, 94 days recorded, and 14 hours recorded'''
  
 epitaphs <- data.frame(epitaphs, years, months, days, hours)
 
 '''WRITE THE NEW CSV!!!!!'''
 write.csv(epitaphs, "epitaphs.csv")
+
+
+'''Some fun histograms'''
+hist(epitaphs[!is.na(epitaphs[,13]), 12])
+hist(epitaphs[!is.na(epitaphs[,14]), 12])
+hist(epitaphs[!is.na(epitaphs[,15]), 12])
+
+
+'''Some fun other stuff'''
+piusList <- epitaphs[grep("pius", modifiedInscriptions),]
+nrow(piusList)
+plot(density(piusList[!is.na(piusList[,12]), 12]))
+lines(density(epitaphs[!is.na(epitaphs[,12]), 12]), col = "red")
+
+
+'''Some fun stuff that isnt really correct right now'''
+piusList2 <- binaryCat(epitaphs[,10], c(" pius ", " pia ", " pio ", " piae ", "piis"))
+piusList2 <- epitaphs[piusList2,]
+nrow(piusList2)
+hist(piusList2[!is.na(piusList2[,12]), 12])
+plot(density(piusList2[!is.na(piusList2[,12]), 12]))
+lines(density(epitaphs[!is.na(epitaphs[,12]), 12]), col = "red")
+plot(density(piusList2[!is.na(piusList2[,12]), 12])$y - density(epitaphs[!is.na(epitaphs[,12]), 12])$y ~ density(epitaphs[!is.na(epitaphs[,12]), 12])$x, type = 'l')
+lines(density(piusList2[!is.na(piusList2[,12]), 12])$y - density(epitaphs[!is.na(epitaphs[,12]), 12])$y ~ density(epitaphs[!is.na(epitaphs[,12]), 12])$x, type = 'l')
+density(epitaphs[!is.na(epitaphs[,12]), 12])$x == density(piusList2[!is.na(piusList2[,12]), 12])$x
+abline(0, b = 0, col = "red")
+par(mfrow = c(2, 1))
+
+
+
