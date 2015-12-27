@@ -13,7 +13,7 @@ africaFull[12, 10]
 
 #x is a vector of things to be categorized, cat is the vector of categorization words
 #the funciton returns a logical vector the length of x where a F indicates non-inclusion and a T indicates inclusion 
-binaryCat <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?")){
+binaryCat <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?", "/", "!", "#")){
   inout <- rep(F, length(x))
   for(i in 1:length(x)){
     inout[i] <- categorize(x[i], cat, subs)
@@ -23,7 +23,7 @@ binaryCat <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?")){
 
 #x is a string, cat is a vector of catagorization words
 #returns 1 if containment, 0 otherwise
-categorize <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?", "/")){
+categorize <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?", "/", "!", "#")){
   for(i in 1:length(cat)){
     for(j in 1:length(subs)){
       past <- x
@@ -164,6 +164,28 @@ lines(density(piusList2[!is.na(piusList2[,12]), 12])$y - density(epitaphs[!is.na
 density(epitaphs[!is.na(epitaphs[,12]), 12])$x == density(piusList2[!is.na(piusList2[,12]), 12])$x
 abline(0, b = 0, col = "red")
 par(mfrow = c(2, 1))
+
+
+'''Some final editting stuff. I want to include columns for haley to look at. The first three columns will be indications about whether or not an epitaph has date words. 
+The final two columns will be indications to Haley to check out certain rows. '''
+
+hasYear <- binaryCat(modifiedInscriptions, c("annos", "annis") )
+hasMonth <- binaryCat(modifiedInscriptions, c("menses", "mensibus"))
+hasDay <- binaryCat(modifiedInscriptions, c("dies", "diebus"))
+hasHour <- binaryCat(modifiedInscriptions, c("horas", "horis", "oras"))
+
+'''Something doesnt line up list: This list indicates that eone of the age categories exists, but there is no recorded number'''
+missingNumber <- rep(FALSE, nrow(epitaphs))
+
+for(i in 1:length(missingNumber)){
+  if((hasYear[i] == TRUE && is.na(epitaphs$years[i])) || (hasMonth[i] == TRUE && is.na(epitaphs$months[i])) || (hasDay[i] == TRUE && is.na(epitaphs$days[i])) || (hasHour[i] == TRUE && is.na(epitaphs$hours[i]))){
+    missingNumber[i] <- TRUE
+  }
+}
+
+# Cool, so now that is done. Next I want to make a multiFamily version. I think she said to check for multiple instantiations of the term vixit...
+
+
 
 
 
