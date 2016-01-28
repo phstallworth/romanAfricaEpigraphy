@@ -1,0 +1,186 @@
+---
+title: "Cleaning the Data"
+output: html_document
+---
+
+This is a record of Philip Stallworth's contributions to the data cleaning process. It should be noted that these contributions are largely computational and could not have been performed without the expertise of Haley Tilt. 
+
+# Getting the File in Working Order
+```{r}
+africaFull <- read.csv("edh.csv", header = TRUE, sep = "\t")
+head(africaFull)
+```
+
+I want to isolate the inscriptions, which are in column 10. Right now they are coded as a factor,
+but this is bad because each time I query the factor vector, it reports back both the entry
+and a list of all the levels. This is really slow, plus coding this variable as a factor makes no sense, because inscriptions are not inherently categorical. What I will do is convert the 10th column into a character vector and work with those.
+
+```{r}
+africaFull[,10] <- as.character(africaFull[,10])
+africaFull[12, 10]
+```
+
+#Find the Epitaphs 
+
+Next, I constructed a function that looks for words in a character string, while ignoring certain characters. Essentially, it "categorizes" inputs by determining whether or not the input contains one of the trigger words. In the package this function is called binaryCat. It references a helper function called categorize which takes a vector of strings as input and outputs whether or not each string contains a  vector ofspecified string.
+
+Now I could actually do some work. Here is the world list for epigraph categorization:
+infans, innocens, puer, puella, relinquit, quiebit, perit, reccessit, recessit, quiesco, periit, decessit,
+vixit, vicxit, vixsit, bixit, visisti, vixi, occisus, occisa, positus, depositus, deposita,
+funus, hic situs est, situs est, in pace, in pacae, memoriae, memoriam, parentibus, diis manibus, and
+dis manibus. We can use 
+
+```{r}
+findEpitaphs <- binaryCat(africaFull[,10], c("infans", "innocens", "puer", "puella", "relinquit", "quiebit", "perit", "reccessit", "recessit", "quiesco", "periit", "decessit", 
+            "vixit", "vicxit", "vixsit", "bixit", "visisti", "vixi", "occisus", "occisa", "positus", "depositus", "deposita",
+            "funus", "hic situs est", "situs est", "in pace", "in pacae", "memoriae", "memoriam", "parentibus", "diis manibus",
+            "dis manibus"))
+nrow(africaFull)
+epitaphs <- africaFull[findEpitaphs == T, ]
+nrow(epitaphs)
+```
+
+We managed to get rid of 2623 observations through this method. The words were chosen because expert opinion claims they are sufficient to find all epitaphs. 
+
+subs <- c("(", ")", "[", "]", "{", "}", "?", "/", "!", "#")
+
+modifiedInscriptions <- rep(NA, nrow(epitaphs)) 
+for(i in 1:nrow(epitaphs)){
+  modifiedInscriptions[i] <- epitaphs[i, 10]
+  for(j in 1:length(subs)){
+    past <- modifiedInscriptions[i]
+    modifiedInscriptions[i] <- sub(subs[j], "", past, fixed = TRUE)
+    while(modifiedInscriptions[i] != past){
+      past <- modifiedInscriptions[i]
+      modifiedInscriptions[i] <- sub(subs[j], "", past, fixed = TRUE)
+    }
+  }
+}
+
+
+'''Next we need to find the age categories. This should first involve creating a function which finds a word 
+then looks directly after it for a roman numeral. We then convert that roman numeral into a regular number and put it into a vector. We need to do this
+for a years, months, days, and hours columns. Fortunately, the same function should work for each. '''
+
+findRomanNumeral <- function(x, w){
+  location <- regexpr(w, x)
+  if(location[1] == -1){
+    return(NA)
+  }
+  else{
+  location <- location[1] + slot(location, "match.length")
+  start <- location
+  while(substr(x, start, start) == " ") {start <- start + 1}
+  end <- start
+  while(substr(x, end+1, end+1) != " " && end+1 <= nchar(x)) {end <- end + 1}
+  final <- as.numeric(as.roman(substr(x, start, end)))
+  return(final)
+  }
+}
+findRomanNumeral(modifiedInscriptions[1], "annos")
+findRomanNumeral(modifiedInscriptions[2], "annis")
+findRomanNumeral(modifiedInscriptions[3], "annis")
+
+'''Yay, so that is done. Now lets incorporate find all the years and shit. The key words are annis and annos'''
+findRomanNumeralMulti <- function(v, words){
+  final <- rep(NA, length(v))
+  for(i in 1:length(v))
+    for(j in 1:length(words)){
+      if(is.na(findRomanNumeral(v[i], words[j])) == FALSE) {
+        final[i] <- findRomanNumeral(v[i], words[j])
+      }
+    print(i)
+  }
+  return(final)
+}
+
+years <- findRomanNumeralMulti(modifiedInscriptions, c("annos", "annis"))
+
+'''Sweet! That worked. Time to do the same for months and days '''
+months <- findRomanNumeralMulti(modifiedInscriptions, c("menses", "mensibus"))
+days <- findRomanNumeralMulti(modifiedInscriptions, c("dies", "diebus"))
+hours <- findRomanNumeralMulti(modifiedInscriptions, c("horas", "oras", "horis"))
+
+length(years[!is.na(years)])
+length(months[!is.na(months)])
+length(days[!is.na(days)])
+length(hours[!is.na(hours)])
+
+'''For posterity we have 739 years recorded, 
+160 months recorded, 94 days recorded, and 14 hours recorded'''
+ 
+epitaphs <- data.frame(epitaphs, years, months, days, hours)
+
+'''WRITE THE NEW CSV!!!!!'''
+#DOOONTTTT RREEEDDDDOOOOO#############
+write.csv(epitaphs, "epitaphs.csv")
+###############################
+
+'''Some fun histograms'''
+hist(epitaphs[!is.na(epitaphs[,13]), 12])
+hist(epitaphs[!is.na(epitaphs[,14]), 12])
+hist(epitaphs[!is.na(epitaphs[,15]), 12])
+
+
+'''Some fun other stuff'''
+piusList <- epitaphs[grep("pius", modifiedInscriptions),]
+nrow(piusList)
+plot(density(piusList[!is.na(piusList[,12]), 12]))
+lines(density(epitaphs[!is.na(epitaphs[,12]), 12]), col = "red")
+
+
+'''Some fun stuff that isnt really correct right now'''
+piusList2 <- binaryCat(epitaphs[,10], c(" pius ", " pia ", " pio ", " piae ", "piis"))
+piusList2 <- epitaphs[piusList2,]
+nrow(piusList2)
+hist(piusList2[!is.na(piusList2[,12]), 12])
+plot(density(piusList2[!is.na(piusList2[,12]), 12]))
+lines(density(epitaphs[!is.na(epitaphs[,12]), 12]), col = "red")
+plot(density(piusList2[!is.na(piusList2[,12]), 12])$y - density(epitaphs[!is.na(epitaphs[,12]), 12])$y ~ density(epitaphs[!is.na(epitaphs[,12]), 12])$x, type = 'l')
+lines(density(piusList2[!is.na(piusList2[,12]), 12])$y - density(epitaphs[!is.na(epitaphs[,12]), 12])$y ~ density(epitaphs[!is.na(epitaphs[,12]), 12])$x, type = 'l')
+density(epitaphs[!is.na(epitaphs[,12]), 12])$x == density(piusList2[!is.na(piusList2[,12]), 12])$x
+abline(0, b = 0, col = "red")
+par(mfrow = c(2, 1))
+
+
+'''Some final editting stuff. I want to include columns for haley to look at. The first three columns will be indications about whether or not an epitaph has date words. 
+The final two columns will be indications to Haley to check out certain rows. '''
+
+hasYear <- binaryCat(modifiedInscriptions, c("annos", "annis") )
+hasMonth <- binaryCat(modifiedInscriptions, c("menses", "mensibus"))
+hasDay <- binaryCat(modifiedInscriptions, c("dies", "diebus"))
+hasHour <- binaryCat(modifiedInscriptions, c("horas", "horis", "oras"))
+
+'''Something doesnt line up list: This list indicates that eone of the age categories exists, but there is no recorded number'''
+missingNumber <- rep(FALSE, nrow(epitaphs))
+
+for(i in 1:length(missingNumber)){
+  if((hasYear[i] == TRUE && is.na(epitaphs$years[i])) || (hasMonth[i] == TRUE && is.na(epitaphs$months[i])) || (hasDay[i] == TRUE && is.na(epitaphs$days[i])) || (hasHour[i] == TRUE && is.na(epitaphs$hours[i]))){
+    missingNumber[i] <- TRUE
+  }
+}
+
+# Cool, so now that is done. Next I want to make a multiFamily version. I think she said to check for multiple instantiations of the term vixit...
+vixitAlts <- c("vixit", "vicxit", "vixsit", "bixit", "visisti", "vixi")
+multiFam <- rep(F, nrow(epitaphs))
+for(i in 1:length(multiFam)){
+  j <- 1
+  while(j <= length(vixitAlts) && multiFam[i] != TRUE){
+    loc <- regexpr(vixitAlts[j], modifiedInscriptions[i])
+    if(loc[1] != -1){
+        k <- 1
+        while(k <= length(vixitAlts) && multiFam[i] != TRUE){
+          multiFam[i] <- grepl(vixitAlts[k], substr(modifiedInscriptions[i], loc[1] + slot(loc, "match.length"), 100000000))
+          k <- k + 1
+        }
+    }
+    j <- j + 1
+    }
+}
+
+######UPDATING CSV THIRD TIME!!!!!#######
+epitaphs <- data.frame(epitaphs, hasYear, hasMonth, hasDay, hasHour, missingNumber, multiFam)
+write.csv(epitaphs, "epitaphs.csv")
+############################
+
+
