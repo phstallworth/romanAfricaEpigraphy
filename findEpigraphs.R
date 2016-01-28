@@ -136,8 +136,9 @@ length(hours[!is.na(hours)])
 epitaphs <- data.frame(epitaphs, years, months, days, hours)
 
 '''WRITE THE NEW CSV!!!!!'''
+#DOOONTTTT RREEEDDDDOOOOO#############
 write.csv(epitaphs, "epitaphs.csv")
-
+###############################
 
 '''Some fun histograms'''
 hist(epitaphs[!is.na(epitaphs[,13]), 12])
@@ -184,8 +185,26 @@ for(i in 1:length(missingNumber)){
 }
 
 # Cool, so now that is done. Next I want to make a multiFamily version. I think she said to check for multiple instantiations of the term vixit...
+vixitAlts <- c("vixit", "vicxit", "vixsit", "bixit", "visisti", "vixi")
+multiFam <- rep(F, nrow(epitaphs))
+for(i in 1:length(multiFam)){
+  j <- 1
+  while(j <= length(vixitAlts) && multiFam[i] != TRUE){
+    loc <- regexpr(vixitAlts[j], modifiedInscriptions[i])
+    if(loc[1] != -1){
+        k <- 1
+        while(k <= length(vixitAlts) && multiFam[i] != TRUE){
+          multiFam[i] <- grepl(vixitAlts[k], substr(modifiedInscriptions[i], loc[1] + slot(loc, "match.length"), 100000000))
+          k <- k + 1
+        }
+    }
+    j <- j + 1
+    }
+}
 
-
-
+######UPDATING CSV THIRD TIME!!!!!#######
+epitaphs <- data.frame(epitaphs, hasYear, hasMonth, hasDay, hasHour, missingNumber, multiFam)
+write.csv(epitaphs, "epitaphs.csv")
+############################
 
 
