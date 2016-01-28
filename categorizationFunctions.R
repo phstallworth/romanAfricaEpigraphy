@@ -1,3 +1,6 @@
+#x is a vector of things to be categorized, cat is the vector of categorization words
+#the funciton returns a logical vector the length of x where a F indicates
+#non-inclusion and a T indicates inclusion 
 binaryCat <- function(x, cat, subs = c("(", ")", "[", "]", "{", "}", "?", "/", "!", "#")){
   inout <- rep(F, length(x))
   for(i in 1:length(x)){
