@@ -21,7 +21,6 @@ findRomanNumeralMulti <- function(v, words){
       if(is.na(findRomanNumeral(v[i], words[j])) == FALSE) {
         final[i] <- findRomanNumeral(v[i], words[j])
       }
-      print(i)
     }
   return(final)
 }
