@@ -20,6 +20,7 @@ findRomanNumeralMulti <- function(v, words){
     for(j in 1:length(words)){
       if(is.na(findRomanNumeral(v[i], words[j])) == FALSE) {
         final[i] <- findRomanNumeral(v[i], words[j])
+        break
       }
     }
   return(final)
