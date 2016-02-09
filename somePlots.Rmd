@@ -1,0 +1,131 @@
+---
+title: "Making Graphs and Shit"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+epitaphs <- read.csv("epitaphs_Feb7.csv")
+epitaphs$Transcription <- as.character(epitaphs$Transcription)
+```
+
+The age bins are defined by the highest value. So age bin 5 is for ages 0-5, age bin 10 for 6-10, etc 
+
+```{r, echo=FALSE}
+ageBins <- rep(NA, 1001)
+cats <- seq(0, 110, 5)
+for(i in 1:1001){
+  if(is.na(epitaphs$year[i])){ next }
+  for(j in 1:length(cats)){
+    if(epitaphs$year[i] <= cats[j] + 5){ 
+      ageBins[i] <- cats[j] + 5
+      break
+    }
+  }
+}
+```
+
+```{r}
+propsMonth <- rep(NA, length(cats))
+for(k in 1:length(cats)){
+  relVector <-epitaphs[ageBins == cats[k] + 5, ]$month
+  propsMonth[k] <- length(relVector[!is.na(relVector)])/length(relVector)
+}
+plot(propsMonth ~ cats, type = 'l')
+
+propsDay <- rep(NA, length(cats))
+for(k in 1:length(cats)){
+  relVector <-epitaphs[ageBins == cats[k] + 5, ]$day
+  propsDay[k] <- length(relVector[!is.na(relVector)])/length(relVector)
+}
+plot(propsDay ~ cats, type = 'l')
+
+propsHour <- rep(NA, length(cats))
+for(k in 1:length(cats)){
+  relVector <-epitaphs[ageBins == cats[k] + 5, ]$hour
+  propsHour[k] <- length(relVector[!is.na(relVector)])/length(relVector)
+}
+plot(propsHour ~ cats, type = 'l')
+```
+
+
+# Epitaph length vs. Age
+
+This is a bit complicated. We need to start out by getting the relevant characters on each epitaph. I should be able to copy over my modified inscriptions stuff with some other shit.
+
+```{r}
+removeInterval <- function(w, start, end){
+  index <- regexpr(start, w, fixed = TRUE)
+  while(index[1] != -1){
+    if(regexpr(end, w, fixed = TRUE)[1] == -1){
+      w <- sub(substr(w, index[1], nchar(w)), "", w, fixed = T)
+      break 
+      }
+    w <- sub(substr(w, index[1], regexpr(end, w, fixed = TRUE)), "", w, fixed = T)
+    index <- regexpr(start, w, fixed = TRUE)
+  }
+  return(w)
+}
+```
+
+```{r, warning = FALSE}
+transcripts <- epitaphs$Transcription
+marked <- rep(NA, length(transcripts))
+transcript_length <- rep(NA, length(transcripts))
+
+for(i in 1:length(transcripts)){
+  transcripts[i] <- removeInterval(transcripts[i], "(", ")")
+  #THIS IS PROBLEMATIC BRING UP WITH HALEY
+  transcripts[i] <- removeInterval(transcripts[i], "<", ">")
+  transcripts[i] <- gsub(" ", "", transcripts[i])
+  if(regexpr("&", transcripts[i], fixed = TRUE)[1] != -1 || regexpr("[---", transcripts[i], fixed = TRUE)[1] != -1 ||
+     regexpr("---]", transcripts[i], fixed = TRUE)[1] != -1) { 
+    marked[i] <- TRUE
+  }
+  if(i == 178 || i == 237 || i == 437 || i == 856 || i == 905 || i == 911 || i == 929 || i== 938 || i == 951 || i == 967 || i == 978 
+     || i == 986|| i == 989 || i == 990 ){
+    next
+  }
+  transcripts[i] <- gsub("!", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("@", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("$", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("%", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("^", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("&", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("*", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("{", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("}", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("\\", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("~", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("`", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub(".", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("'", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("?", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("+", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("-", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("_", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("/", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("[", "", transcripts[i], fixed = TRUE)
+  transcripts[i] <- gsub("]", "", transcripts[i], fixed = TRUE)
+  transcript_length[i] <- nchar(transcripts[i])
+}
+
+plot(transcript_length ~ epitaphs$year)
+m1 <- lm(transcript_length ~ epitaphs$year)
+summary(m1)
+
+for(i in 1:length(transcripts)){
+  if(is.na(transcript_length[i])){ next }
+  if(transcript_length[i] > 300){ transcript_length[i] <- NA}
+}
+plot(transcript_length ~ epitaphs$year)
+
+#SUPER INADEQUATE. NEED TO REDO ALL THIS BEFORE REAL SUBMISSION STUFF
+m2 <- lm(transcript_length ~ epitaphs$year)
+summary(m2)
+
+hist(epitaphs$years, breaks = seq(0, max(epitaphs$years, na.rm = T), by = 1))
+```
