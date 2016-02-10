@@ -1,11 +1,8 @@
 ---
-title: "Making Graphs and Shit"
+title: "Making Graphs"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r}
 epitaphs <- read.csv("epitaphs_Feb7.csv")
@@ -34,21 +31,27 @@ for(k in 1:length(cats)){
   relVector <-epitaphs[ageBins == cats[k] + 5, ]$month
   propsMonth[k] <- length(relVector[!is.na(relVector)])/length(relVector)
 }
-plot(propsMonth ~ cats, type = 'l')
+plot(propsMonth ~ cats, type = 'l',
+     xlab = "Age in Years (Grouped into 5 year increments)",
+     ylab = "Proportion with information on Months" )
 
 propsDay <- rep(NA, length(cats))
 for(k in 1:length(cats)){
   relVector <-epitaphs[ageBins == cats[k] + 5, ]$day
   propsDay[k] <- length(relVector[!is.na(relVector)])/length(relVector)
 }
-plot(propsDay ~ cats, type = 'l')
+plot(propsDay ~ cats, type = 'l',
+     xlab = "Age in Years (Grouped into 5 year increments",
+     ylab = "Proportion with information on Days")
 
 propsHour <- rep(NA, length(cats))
 for(k in 1:length(cats)){
   relVector <-epitaphs[ageBins == cats[k] + 5, ]$hour
   propsHour[k] <- length(relVector[!is.na(relVector)])/length(relVector)
 }
-plot(propsHour ~ cats, type = 'l')
+plot(propsHour ~ cats, type = 'l',
+     xlab = "Age in Years (Grouped into 5 year increments",
+     ylab = "Proportion with information on Hours")
 ```
 
 
@@ -121,11 +124,15 @@ for(i in 1:length(transcripts)){
   if(is.na(transcript_length[i])){ next }
   if(transcript_length[i] > 300){ transcript_length[i] <- NA}
 }
-plot(transcript_length ~ epitaphs$year)
+plot(transcript_length ~ epitaphs$year,
+     xlab = "Years lived",
+     ylab = "Epitaph Length")
 
 #SUPER INADEQUATE. NEED TO REDO ALL THIS BEFORE REAL SUBMISSION STUFF
 m2 <- lm(transcript_length ~ epitaphs$year)
 summary(m2)
 
-hist(epitaphs$years, breaks = seq(0, max(epitaphs$years, na.rm = T), by = 1))
+hist(epitaphs$years, breaks = seq(0, max(epitaphs$years, na.rm = T), by = 1),
+     xlab = "Years lived on Epitaph")
+
 ```
